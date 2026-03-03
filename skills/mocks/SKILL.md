@@ -1,5 +1,5 @@
 ---
-name: imposter
+name: mocks
 description: >
   Use this skill when the user wants to mock APIs, create HTTP test doubles, or
   work with the Imposter mock engine. Covers starting and stopping mock servers

@@ -1,0 +1,13 @@
+{
+  "name": "imposter-agent-skills",
+  "owner": {
+    "name": "imposter-project"
+  },
+  "plugins": [
+    {
+      "name": "imposter",
+      "source": "./",
+      "description": "Mock APIs with the Imposter mock engine - CLI usage, configuration, Docker, CI/CD, and test integration"
+    }
+  ]
+}
