@@ -1,0 +1,23 @@
+{
+  "name": "imposter",
+  "version": "1.0.0",
+  "description": "Mock APIs with the Imposter mock engine - CLI usage, configuration, Docker, CI/CD, and test integration",
+  "author": {
+    "name": "imposter-project",
+    "url": "https://github.com/imposter-project"
+  },
+  "homepage": "https://docs.imposter.sh",
+  "repository": "https://github.com/imposter-project/agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "mock-server",
+    "api-mocking",
+    "imposter",
+    "rest",
+    "openapi",
+    "soap",
+    "test-doubles",
+    "docker",
+    "ci-cd"
+  ]
+}
