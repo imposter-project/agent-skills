@@ -1,0 +1,122 @@
+{
+  "skill_name": "mocks",
+  "evals": [
+    {
+      "id": 1,
+      "name": "quick-start-rest-mock",
+      "prompt": "hey, I need a fake endpoint for local dev - GET /hello that returns some JSON greeting. can you set that up and show me how to run it?",
+      "expected_output": "An Imposter REST configuration file whose name ends in -config.yaml, serving JSON on /hello, plus the commands to start the mock, call it, and stop it again.",
+      "assertions": [
+        "A configuration file is created whose filename ends in '-config.yaml' or '-config.json'",
+        "The configuration sets 'plugin: rest'",
+        "The configuration defines the path /hello with a JSON response body",
+        "The instructions include running 'imposter up'",
+        "The instructions include a curl (or equivalent) call to http://localhost:8080/hello",
+        "The instructions say how to stop the server with 'imposter down'"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "scaffold-from-openapi-spec",
+      "prompt": "I've got an OpenAPI spec at petstore.yaml and I want a mock of that API running locally. What's the quickest way to get one?",
+      "expected_output": "Use of 'imposter scaffold' to generate an openapi-plugin config from the spec, then 'imposter up' to serve it, with an explanation that responses come from the spec's examples.",
+      "files": ["evals/files/petstore.yaml"],
+      "assertions": [
+        "The answer uses the 'imposter scaffold' command to generate configuration from the spec",
+        "The generated or described configuration uses 'plugin: openapi' with a 'specFile' pointing at petstore.yaml",
+        "The answer does not hand-write a separate 'rest' plugin resource for each path in the spec",
+        "The answer states that responses are served from the examples in the OpenAPI spec",
+        "The answer includes starting the mock with 'imposter up'"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "engine-without-docker-or-java",
+      "prompt": "Our build agents are locked down - no Docker daemon and no JDK installed. Can I still run an Imposter mock there, and if so how?",
+      "expected_output": "A recommendation to use the native engine type, which needs no container runtime or Java, noting that it requires Imposter v5, with the command to select it.",
+      "assertions": [
+        "The answer recommends the 'native' engine type",
+        "The answer includes the command 'imposter up -t native' (or the equivalent 'engine: native' config setting or IMPOSTER_ENGINE environment variable)",
+        "The answer states that the native engine needs no Docker and no Java",
+        "The answer states that the native engine requires Imposter v5",
+        "The answer does not recommend the 'jvm' or 'unpacked' engine types as a no-Java option"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "groovy-script-on-v5",
+      "prompt": "We upgraded to Imposter 5 and now our Groovy response scripts are ignored. Is this a bug in the native engine? Should we switch to the Docker image instead?",
+      "expected_output": "An explanation that Groovy support was removed in v5 regardless of how it is run, so switching to the Docker image will not help; the options are rewriting the scripts in JavaScript or pinning a v4 engine version.",
+      "assertions": [
+        "The answer states that Imposter v5 does not support Groovy scripting",
+        "The answer states that switching to the v5 Docker image will not restore Groovy support, because the limitation applies to v5 however it is run",
+        "The answer offers rewriting the scripts in JavaScript as an option",
+        "The answer offers pinning a v4 engine version as an option",
+        "The answer does not suggest the 'jvm' engine type as a way to run Groovy under v5"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "run-v5-under-docker",
+      "prompt": "I ran `imposter up -v 5.0.0` expecting it to use our Docker image but it downloaded a binary instead. How do I pin version 5.0.0 and still run it in Docker?",
+      "expected_output": "An explanation of the version-to-engine derivation (a 5.x version with no explicit engine type resolves to native) and the fix: name the engine type explicitly, which takes precedence.",
+      "assertions": [
+        "The answer explains that pinning a 5.x version with no explicit engine type makes the CLI resolve the engine to 'native'",
+        "The answer states that an explicitly set engine type takes precedence over that derivation",
+        "The answer gives a command equivalent to 'imposter up -t docker -v 5.0.0'",
+        "The answer does not claim that Imposter v5 can only run as a native binary"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "github-actions-mock-in-ci",
+      "prompt": "Add a GitHub Actions job that spins up our Imposter mocks from the ./mocks directory, runs `npm test` against them, and shuts them down afterwards.",
+      "expected_output": "A workflow using the official Imposter GitHub Actions to set up the CLI, start the mocks from ./mocks, run the tests, and stop the mocks unconditionally at the end.",
+      "assertions": [
+        "The workflow uses the official actions under 'imposter-project/imposter-github-action' rather than hand-rolled install or docker run steps",
+        "The workflow includes a start step with 'config-dir' set to './mocks'",
+        "The workflow runs 'npm test' after the mocks have started",
+        "The workflow includes a stop-mocks step guarded with 'if: always()'",
+        "The workflow does not use a fixed 'sleep' to wait for the mock server to become ready"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "config-not-discovered",
+      "prompt": "imposter up keeps telling me it found no configuration files, but mock.yaml is right there in the directory I'm running from. What am I doing wrong?",
+      "expected_output": "Identification of the file-naming convention as the cause - configuration files must end in -config.yaml or -config.json - and a rename of mock.yaml to something like orders-config.yaml.",
+      "files": ["evals/files/mock.yaml"],
+      "assertions": [
+        "The answer identifies the filename as the cause, stating that config files must end in '-config.yaml' or '-config.json'",
+        "The answer renames the file (or tells the user to) to a name ending in '-config.yaml'",
+        "The answer does not invent a CLI flag for pointing at a specific config file",
+        "The renamed configuration file's contents are left functionally unchanged"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "wait-for-readiness-before-tests",
+      "prompt": "Our Jest global setup starts Imposter in the background, but the first few tests fail with connection refused because the mock isn't listening yet. We currently sleep for 5 seconds. What's a better way?",
+      "expected_output": "Replacement of the fixed sleep with a real readiness check - polling the /system/status endpoint, using the bundled wait-for-mock.sh script, or starting detached with -d healthy so the CLI returns only once the server is healthy.",
+      "assertions": [
+        "The answer replaces the fixed sleep with a readiness check rather than a longer sleep",
+        "The answer references the /system/status health endpoint, the bundled scripts/wait-for-mock.sh script, or 'imposter up -d healthy'",
+        "The answer explains that /system/status returns HTTP 200 when the server is healthy, or that '-d healthy' returns only once the server is ready",
+        "The answer's approach has a bounded timeout or attempt limit rather than polling forever"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "request-matching-by-query-and-header",
+      "prompt": "I need one mock endpoint at /users that behaves three ways: with header X-Api-Key: secret-key and ?role=admin it returns admin-users.json, with just the header it returns users.json, and with no header at all it returns 401 with a JSON error body. Can you write the config?",
+      "expected_output": "A single Imposter REST configuration using a resources list, matching on requestHeaders and queryParams, with the unauthenticated case returning status 401.",
+      "assertions": [
+        "The configuration uses a single 'resources' list rather than several separate top-level configs",
+        "Query parameter matching uses the 'queryParams' key with role: admin",
+        "Header matching uses the 'requestHeaders' key with X-Api-Key: secret-key",
+        "The admin resource responds with the file admin-users.json and the authenticated non-admin resource with users.json",
+        "The unauthenticated resource returns statusCode 401 with a JSON error body"
+      ]
+    }
+  ]
+}
