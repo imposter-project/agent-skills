@@ -1,0 +1,12 @@
+plugin: rest
+resources:
+  - path: /orders
+    method: GET
+    response:
+      statusCode: 200
+      content: '[{"id": 1, "total": 42.50}]'
+  - path: /orders/{orderId}
+    method: GET
+    response:
+      statusCode: 200
+      content: '{"id": 1, "total": 42.50}'

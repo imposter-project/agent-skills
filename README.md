@@ -135,13 +135,21 @@ skills/
   ├── scripts/
   │   ├── healthcheck.sh                # Check if mock server is healthy
   │   └── wait-for-mock.sh              # Wait for mock server readiness
-  └── references/
-      ├── ci-cd-github-actions.md       # GitHub Actions integration
-      ├── docker.md                     # Docker deployment
-      ├── imposter-js.md                # JavaScript/Node.js test bindings
-      ├── jvm-embedding.md              # JVM test embedding (JUnit/TestNG)
-      └── configuration.md              # Detailed configuration reference
+  ├── references/
+  │   ├── ci-cd-github-actions.md       # GitHub Actions integration
+  │   ├── docker.md                     # Docker deployment
+  │   ├── imposter-js.md                # JavaScript/Node.js test bindings
+  │   ├── jvm-embedding.md              # JVM test embedding (JUnit/TestNG)
+  │   └── configuration.md              # Detailed configuration reference
+  └── evals/
+      ├── evals.json                    # Eval cases in the Agent Skills format
+      ├── README.md                     # What each case tests and how to run them
+      └── files/                        # Input files used by the eval prompts
 ```
+
+## Evals
+
+Each skill ships an eval set at `skills/<skill>/evals/evals.json`, in the [Agent Skills eval format](https://agentskills.io/skill-creation/evaluating-skills). The cases target behaviour an agent tends to get wrong without the skill - engine type and version rules, the config file naming convention, readiness checking - so results are meaningful against a no-skill baseline. See [skills/mocks/evals/README.md](./skills/mocks/evals/README.md) for the full list.
 
 ## Covered scenarios
 
