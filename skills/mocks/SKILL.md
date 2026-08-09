@@ -6,10 +6,12 @@ description: >
   with the Imposter CLI (imposter up, imposter down, imposter list), running
   mocks in Docker containers, scaffolding mock configuration from OpenAPI specs,
   checking mock server health, and configuring REST, OpenAPI, and SOAP mock
-  endpoints. Also covers CI/CD integration with GitHub Actions, embedding mocks
-  in JVM (JUnit/TestNG) tests, and using the imposter-js Node.js library.
-  Keywords: mock server, API mocking, imposter, REST, OpenAPI, SOAP, test
-  doubles, HTTP mock, stub server, service virtualisation.
+  endpoints. Also covers choosing an engine type (native, Docker, JVM), the
+  native single-binary engine introduced in Imposter v5, CI/CD integration with
+  GitHub Actions, embedding mocks in JVM (JUnit/TestNG) tests, and using the
+  imposter-js Node.js library. Keywords: mock server, API mocking, imposter,
+  REST, OpenAPI, SOAP, gRPC, test doubles, HTTP mock, stub server, service
+  virtualisation, native engine, engine type.
 ---
 
 # Imposter Mock Engine
@@ -20,10 +22,13 @@ Imposter is a mock server for REST APIs, OpenAPI (and Swagger) specifications, S
 
 ### Prerequisites
 
-You need **one** of the following runtimes:
+Depends on which engine type you use:
 
-- **Docker** (recommended) - [Install Docker](https://docs.docker.com/get-docker/)
-- **JVM** (Java 11+)
+- **native** - nothing to install. The CLI downloads a single binary for you. This is Imposter v5 and later.
+- **docker** (current CLI default) - [Install Docker](https://docs.docker.com/get-docker/)
+- **jvm** - Java 11+
+
+See [Engine types](#engine-types) below.
 
 ### Install the CLI
 
@@ -101,9 +106,13 @@ imposter up /path/to/config
 imposter up -p 3000
 
 # Choose engine type
-imposter up -t docker       # Docker core (default, common plugins)
+imposter up -t native       # Native single binary, no Docker or Java needed
+imposter up -t docker       # Docker core (current default, common plugins)
 imposter up -t docker-all   # Docker all (all plugins)
-imposter up -t jvm           # JVM engine (requires Java 11+)
+imposter up -t jvm          # JVM engine (requires Java 11+)
+
+# Pin an engine version
+imposter up -v 5.0.0        # Implies the native engine (see Engine types below)
 ```
 
 **Key flags:**
@@ -111,8 +120,10 @@ imposter up -t jvm           # JVM engine (requires Java 11+)
 | Flag | Description | Default |
 |------|-------------|---------|
 | `-p, --port` | Server port | `8080` |
-| `-t, --engine-type` | Engine: `docker`, `docker-all`, `docker-core`, `jvm` | `docker` |
+| `-t, --engine-type` | Engine: `native`, `docker`, `docker-all`, `docker-distroless`, `jvm`, `unpacked` | `docker` |
+| `-v, --version` | Engine version | `latest` |
 | `-e, --env` | Set environment variable (e.g. `-e KEY=VALUE`) | |
+| `-d, --detach` | Run in the background (`healthy` or `now`) | |
 | `--debug-mode` | Enable JVM debug on port 8000 | |
 
 ### imposter down
@@ -153,7 +164,65 @@ Check your Imposter installation.
 imposter doctor
 ```
 
-This verifies that the CLI, engine (Docker or JVM), and configuration are correctly set up.
+This verifies that the CLI, the configured engine, and configuration are correctly set up.
+
+## Engine types
+
+Imposter can run under several engine types. Pick with `-t/--engine-type`, the `engine` key in `$HOME/.imposter/config.yaml` or `imposter-project.yaml`, or the `IMPOSTER_ENGINE` environment variable.
+
+| Type | Runtime needed | Notes |
+|------|----------------|-------|
+| `native` | none | Single binary, downloaded by the CLI. Imposter v5+. |
+| `docker` | Docker | Current CLI default. Common plugins. |
+| `docker-all` | Docker | All plugins. |
+| `docker-distroless` | Docker | Smaller distroless image. |
+| `jvm` | Java 11+ | Single JAR. |
+| `unpacked` | Java 11+ | Unpacked JVM distribution. |
+
+### The native engine (v5)
+
+Imposter v5 is the native engine: a lightweight single binary with no Docker or Java dependency. It was previously called `golang`, and that value is still accepted as a deprecated alias.
+
+Supports:
+
+- REST, OpenAPI (2.0 and 3.0+), SOAP (1.1 and 1.2) and gRPC plugins
+- JavaScript scripting
+- Request matching (path, query params, headers, body via JSONPath/XPath)
+- Response templating, capture and stores (in-memory, Redis, DynamoDB)
+- Fake data generation, rate limiting, performance simulation (delays)
+- TLS and HTTP/2
+
+Differences from the JVM engine:
+
+- **No Groovy scripting** - use JavaScript instead
+- **No passthrough/proxy responses** - cannot forward requests upstream
+- **No remote configuration sources** - config must be on the local filesystem
+
+To use it:
+
+```bash
+imposter up -t native
+```
+
+Or set it as your default in `$HOME/.imposter/config.yaml`:
+
+```yaml
+engine: native
+```
+
+### Version-to-engine derivation
+
+If you pin an engine version of **5.x or later** and have not set an engine type explicitly, the CLI resolves the engine type to `native` automatically:
+
+```bash
+imposter up -v 5.0.0    # runs the native engine
+```
+
+Versions below 5.x, and the `latest` alias, keep the configured default (currently `docker`). An explicitly set engine type always wins over the derivation.
+
+Note that v5 and later take their config directory and listen port via the `IMPOSTER_CONFIG_DIR` and `IMPOSTER_PORT` environment variables, rather than the `--configDir` and `--listenPort` arguments used by 4.x and earlier. The CLI handles this for you; it only matters if you invoke the engine directly.
+
+For more detail see the [native engine guide](https://github.com/imposter-project/imposter-cli/blob/main/docs/engine_native.md).
 
 ## Checking if the server is up
 
@@ -202,6 +271,7 @@ Configuration files must end with `-config.yaml` or `-config.json`. Examples: `p
 | `rest` | Plain REST endpoints | `plugin: rest` |
 | `openapi` | OpenAPI/Swagger specifications | `plugin: openapi` |
 | `soap` | SOAP/WSDL web services | `plugin: soap` |
+| `grpc` | gRPC services | `plugin: grpc` |
 
 ### REST plugin example
 
@@ -330,11 +400,21 @@ If you see connection errors, verify Docker is running:
 docker info
 ```
 
-Or switch to the JVM engine type:
+Or switch to an engine type that doesn't need Docker. The native engine needs no runtime at all:
+
+```bash
+imposter up -t native
+```
+
+The JVM engine works too, if you have Java 11+:
 
 ```bash
 imposter up -t jvm
 ```
+
+### Groovy scripts not working
+
+The native engine (v5+) supports JavaScript only. Either rewrite the script in JavaScript, or use the `docker` or `jvm` engine type, which still support Groovy.
 
 ### Check installation health
 

@@ -8,7 +8,7 @@ Also available as a [Claude Code plugin](#claude-code-plugin-recommended).
 
 | Skill | Description |
 |-------|-------------|
-| [mocks](./skills/mocks/) | Mock APIs with the Imposter mock engine - CLI usage, configuration, Docker, CI/CD, and test integration |
+| [mocks](./skills/mocks/) | Mock APIs with the Imposter mock engine - CLI usage, engine types, configuration, Docker, CI/CD, and test integration |
 
 ## Installation
 
@@ -146,6 +146,7 @@ skills/
 ## Covered scenarios
 
 - **Local development** - Install the CLI, start/stop mocks, scaffold configuration from OpenAPI specs, health checking
+- **Engine types** - Choosing between the native single-binary engine (Imposter v5+), Docker and JVM
 - **CI/CD pipelines** - GitHub Actions for setup, starting mocks, running tests, and cleanup
 - **Docker** - Running Imposter containers directly, building self-contained images
 - **JavaScript tests** - Embedding mocks in Jest/Mocha tests with imposter-js

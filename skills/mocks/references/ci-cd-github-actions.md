@@ -27,6 +27,8 @@ Starts the mock server in the background and waits for it to be ready.
     recursive-config-scan: 'false'  # default: 'false'
 ```
 
+**Tip:** `engine-type: 'native'` runs the single-binary engine, which needs no Docker or Java on the runner and starts faster. Setting `version` to a 5.x release implies the native engine when `engine-type` is left unset.
+
 **Advanced options:**
 
 | Input | Description | Default |
