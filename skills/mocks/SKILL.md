@@ -24,9 +24,9 @@ Imposter is a mock server for REST APIs, OpenAPI (and Swagger) specifications, S
 
 Depends on which engine type you use:
 
-- **native** - nothing to install. The CLI downloads a single binary for you. This is Imposter v5 and later.
-- **docker** (current CLI default) - [Install Docker](https://docs.docker.com/get-docker/)
-- **jvm** - Java 11+
+- **native** - nothing to install. The CLI downloads a single binary for you. Imposter v5 only.
+- **docker** (current CLI default) - [Install Docker](https://docs.docker.com/get-docker/). Available for both v4 and v5.
+- **jvm** - Java 11+. Imposter v4 only.
 
 See [Engine types](#engine-types) below.
 
@@ -170,18 +170,24 @@ This verifies that the CLI, the configured engine, and configuration are correct
 
 Imposter can run under several engine types. Pick with `-t/--engine-type`, the `engine` key in `$HOME/.imposter/config.yaml` or `imposter-project.yaml`, or the `IMPOSTER_ENGINE` environment variable.
 
-| Type | Runtime needed | Notes |
-|------|----------------|-------|
-| `native` | none | Single binary, downloaded by the CLI. Imposter v5+. |
-| `docker` | Docker | Current CLI default. Common plugins. |
-| `docker-all` | Docker | All plugins. |
-| `docker-distroless` | Docker | Smaller distroless image. |
-| `jvm` | Java 11+ | Single JAR. |
-| `unpacked` | Java 11+ | Unpacked JVM distribution. |
+Which types are available depends on the major version of the engine:
+
+| Type | Runtime needed | v4 | v5 | Notes |
+|------|----------------|----|----|-------|
+| `docker` | Docker | yes | yes | Current CLI default. Common plugins. |
+| `docker-all` | Docker | yes | yes | All plugins. |
+| `docker-distroless` | Docker | yes | no | Smaller distroless image. |
+| `jvm` | Java 11+ | yes | no | Single JAR. |
+| `unpacked` | Java 11+ | yes | no | Unpacked JVM distribution. |
+| `native` | none | no | yes | Single binary, downloaded by the CLI. |
+
+So v5 drops the JVM-based types (`jvm`, `unpacked`) and the distroless image, and adds `native`. Both major versions ship `docker` and `docker-all` images, so you can run v5 in a container as well as natively.
 
 ### The native engine (v5)
 
-Imposter v5 is the native engine: a lightweight single binary with no Docker or Java dependency. It was previously called `golang`, and that value is still accepted as a deprecated alias.
+The native engine is v5's no-runtime option: a lightweight single binary with no Docker or Java dependency. It was previously called `golang`, and that value is still accepted as a deprecated alias.
+
+It is not the only way to run v5. The `docker` and `docker-all` types run the same v5 engine in a container. Pick native when you want to avoid a container runtime entirely.
 
 Supports:
 
@@ -192,7 +198,7 @@ Supports:
 - Fake data generation, rate limiting, performance simulation (delays)
 - TLS and HTTP/2
 
-Differences from the JVM engine:
+Differences from the v4 JVM-based engine, which apply to v5 however you run it (native binary or Docker image):
 
 - **No Groovy scripting** - use JavaScript instead
 - **No passthrough/proxy responses** - cannot forward requests upstream
@@ -218,7 +224,11 @@ If you pin an engine version of **5.x or later** and have not set an engine type
 imposter up -v 5.0.0    # runs the native engine
 ```
 
-Versions below 5.x, and the `latest` alias, keep the configured default (currently `docker`). An explicitly set engine type always wins over the derivation.
+Versions below 5.x, and the `latest` alias, keep the configured default (currently `docker`). An explicitly set engine type always wins over the derivation, so to run v5 in Docker rather than natively, name the type:
+
+```bash
+imposter up -t docker -v 5.0.0    # v5 engine, Docker image
+```
 
 Note that v5 and later take their config directory and listen port via the `IMPOSTER_CONFIG_DIR` and `IMPOSTER_PORT` environment variables, rather than the `--configDir` and `--listenPort` arguments used by 4.x and earlier. The CLI handles this for you; it only matters if you invoke the engine directly.
 
@@ -352,15 +362,23 @@ If you prefer to use Docker without the CLI:
 docker run -v $PWD:/opt/imposter/config -p 8080:8080 outofcoffee/imposter
 ```
 
+Both v4 and v5 publish Docker images, so tag the version you want:
+
+```bash
+docker run -v $PWD:/opt/imposter/config -p 8080:8080 outofcoffee/imposter:5.0.0
+```
+
 For Docker image variants and advanced usage, see [references/docker.md](references/docker.md).
 
 ## Running as a JAR
 
-If you have Java 11+ installed:
+Imposter v4 only - v5 has no JVM distribution. If you have Java 11+ installed:
 
 ```bash
 java -jar imposter-all.jar --plugin rest --configDir ./config
 ```
+
+For v5, use the native binary or a Docker image instead.
 
 ## Other ways to use Imposter
 
@@ -414,7 +432,7 @@ imposter up -t jvm
 
 ### Groovy scripts not working
 
-The native engine (v5+) supports JavaScript only. Either rewrite the script in JavaScript, or use the `docker` or `jvm` engine type, which still support Groovy.
+Imposter v5 supports JavaScript only, whether you run it as the native binary or as a Docker image. Either rewrite the script in JavaScript, or pin a v4 engine version, where Groovy is still supported.
 
 ### Check installation health
 

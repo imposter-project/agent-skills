@@ -8,7 +8,19 @@ Run Imposter as a Docker container without using the CLI.
 |-------|-----------|-----|---------|-------|
 | **core** | `outofcoffee/imposter` | `public.ecr.aws/imposter/imposter` | openapi, rest, soap | Recommended for most users |
 | **all** | `outofcoffee/imposter-all` | `public.ecr.aws/imposter/imposter-all` | All plugins | Largest image |
-| **distroless** | `outofcoffee/imposter-distroless` | `public.ecr.aws/imposter/imposter-distroless` | Same as core | Smallest image |
+| **distroless** | `outofcoffee/imposter-distroless` | `public.ecr.aws/imposter/imposter-distroless` | Same as core | Smallest image. **v4 only** |
+
+### Versions
+
+Both Imposter v4 and v5 publish `core` and `all` images, so Docker is a first-class way to run either. Pick with a tag:
+
+```bash
+docker run -v $PWD:/opt/imposter/config -p 8080:8080 outofcoffee/imposter:5.0.0
+```
+
+The distroless image is v4 only. v5 has no JVM-based variant; its Docker images wrap the same engine as the native binary, so the v5 caveats apply in the container too — JavaScript scripting only (no Groovy), no passthrough/proxy responses, and no remote configuration sources.
+
+If you want v5 without a container runtime at all, use the CLI's `native` engine type instead — see the main skill's Engine types section.
 
 ## Basic usage
 

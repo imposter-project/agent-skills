@@ -2,10 +2,13 @@
 
 Embed Imposter directly in your JUnit or TestNG tests. The mock server starts before your tests and provides synthetic HTTP responses to your component under test.
 
+**Imposter v4 only.** Embedding depends on the JVM distribution, which v5 does not ship. For v5, run a mock server alongside your tests using the native engine or a Docker image.
+
 ## Prerequisites
 
 - Java 11+
 - A JVM build tool (Gradle or Maven)
+- Imposter v4 artefacts
 
 ## Getting started
 
